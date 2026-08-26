@@ -162,6 +162,7 @@ const MOCK_DB = {
       categoryId: 'ahorro',
       badge: 'Ahorro',
       title: 'Automatización de Transferencias al Ahorro',
+      image: 'assets/tips/automatizacion-transferencias-ahorro.jpg',
       excerpt: 'Configurá una transferencia automática a tu cuenta de ahorro el mismo día que te pagan y sacate de encima la decisión mensual.',
       body: [
         'No hace falta acordarte de ahorrar todos los meses: podés dejar que lo haga la banca en línea por vos. Configurá una transferencia automática, programada para el mismo día en que te llega el sueldo, hacia una cuenta de ahorro separada.',
@@ -175,6 +176,7 @@ const MOCK_DB = {
       categoryId: 'ahorro',
       badge: 'Ahorro',
       title: 'El Desafío de las 52 Semanas',
+      image: 'assets/tips/desafio-52-semanas.jpg',
       excerpt: 'Empezá ahorrando poco y subí el monto cada semana. Al cabo de un año, ese hábito progresivo se convierte en un fondo considerable.',
       body: [
         'La idea es simple: arrancás con un monto chico la primera semana y lo vas subiendo semana a semana durante todo el año. Como el incremento es gradual, el ahorro nunca se siente como un salto brusco al bolsillo.',
@@ -188,6 +190,7 @@ const MOCK_DB = {
       categoryId: 'ahorro',
       badge: 'Ahorro',
       title: 'La Importancia de Empezar con lo que Tenés',
+      image: 'assets/tips/empezar-con-lo-que-tenes.jpg',
       excerpt: 'No hace falta una gran cantidad para arrancar a ahorrar. Lo que construye el hábito es la constancia, no el monto inicial.',
       body: [
         'Es común pensar que ahorrar o invertir requiere una suma grande para que valga la pena. Pero lo que realmente marca la diferencia es dar el primer paso, sea cual sea el monto disponible — el hábito se construye con la repetición, no con la cifra.',
@@ -201,6 +204,7 @@ const MOCK_DB = {
       categoryId: 'ahorro',
       badge: 'Ahorro',
       title: 'Un Colchón para lo Inesperado',
+      image: 'assets/tips/colchon-para-imprevistos.jpg',
       excerpt: 'Una reparación, un imprevisto de salud, un mes flaco: tener un colchón aparte evita que un imprevisto se convierta en deuda.',
       body: [
         'Un colchón para lo inesperado es plata reservada específicamente para eso que no podés planificar: se rompe el auto, aparece un gasto médico, se corta un ingreso por un mes. Su función no es rendir — es estar ahí, disponible, el día que la necesites.',
@@ -214,6 +218,7 @@ const MOCK_DB = {
       categoryId: 'ahorro',
       badge: 'Ahorro',
       title: 'La Importancia de Nombrarle tus Ahorros',
+      image: 'assets/tips/nombra-tus-ahorros.jpg',
       excerpt: 'Ahorrar "porque sí" se abandona rápido. Ponerle un nombre concreto a la meta le da sentido a cada peso que guardás.',
       body: [
         'Ahorrar sin un propósito claro es fácil de abandonar a la primera excusa. En cambio, cuando cada depósito tiene un destino concreto — un viaje, un colchón de emergencia, un gusto que te vas a dar — se convierte en un paso hacia algo que realmente te importa.',
@@ -227,6 +232,7 @@ const MOCK_DB = {
       categoryId: 'alertas',
       badge: 'Alertas',
       title: 'Cómo Protegerse de Estafas en Línea',
+      image: 'assets/tips/protegerse-de-estafas-en-linea.jpg',
       excerpt: 'Un mensaje que promete un premio que nunca pediste es la señal más clara de alerta. Nunca compartas datos bancarios por esa vía.',
       body: [
         'Los mensajes que anuncian un premio o un reembolso inesperado —sin que hayas participado en nada— son una de las tácticas más comunes para robar datos personales y bancarios. Cuanto más urgente suena el mensaje, más motivo para desconfiar: la urgencia está diseñada para que no pares a pensar.',
@@ -240,6 +246,7 @@ const MOCK_DB = {
       categoryId: 'alertas',
       badge: 'Alertas',
       title: 'Cuidado con las Cuotas "Sin Interés"',
+      image: 'assets/tips/cuotas-sin-interes.jpg',
       excerpt: 'El precio "sin interés" a veces ya viene inflado. Compará siempre contra el valor al contado antes de comprometerte a cuotas.',
       body: [
         'Cuando una compra se ofrece en cuotas "sin interés", vale la pena mirar con atención: una táctica común es inflar el precio del producto de entrada, para compensar por adelantado los intereses que "no" vas a pagar en las cuotas.',
@@ -253,6 +260,7 @@ const MOCK_DB = {
       categoryId: 'alertas',
       badge: 'Alertas',
       title: 'La Trampa de las Renovaciones Automáticas',
+      image: 'assets/tips/suscripciones-renovacion-automatica.jpg',
       excerpt: 'Es fácil olvidar una suscripción activa si no usás el servicio seguido. El cobro, en cambio, no se olvida de vos.',
       body: [
         'La mayoría de las apps y servicios de suscripción están configurados para renovarse solos cada mes. Es una comodidad cuando el servicio se usa a diario — y un gasto silencioso cuando dejó de usarse hace tiempo y nadie se acordó de cancelarlo.',
@@ -266,6 +274,7 @@ const MOCK_DB = {
       categoryId: 'alertas',
       badge: 'Alertas',
       title: 'El CAE: Más Allá de la Tasa de Interés',
+      image: 'assets/tips/cae-mas-alla-de-la-tasa.jpg',
       excerpt: 'La tasa de interés no cuenta toda la historia de un crédito. El CAE suma comisiones y seguros para mostrar el costo real.',
       body: [
         'Cuando se compara un crédito, es tentador fijarse solo en la tasa de interés mensual que ofrece cada institución. Pero ese número, solo, puede ser engañoso: no incluye comisiones, seguros ni otros cargos que también forman parte del costo final.',
@@ -279,6 +288,7 @@ const MOCK_DB = {
       categoryId: 'alertas',
       badge: 'Alertas',
       title: 'La Psicología de las Ofertas "Por Tiempo Limitado"',
+      image: 'assets/tips/ofertas-por-tiempo-limitado.jpg',
       excerpt: '"Solo por hoy" apela al miedo a perderte algo, no a que sea una buena oferta. Si de verdad es buena, va a seguir siéndolo mañana.',
       body: [
         'Frases como "solo por hoy" o "hasta agotar existencias" no están ahí para informarte — están diseñadas para generar una sensación de escasez y activar el miedo a perderte algo (FOMO), empujándote a decidir rápido y sin pensarlo demasiado.',
@@ -292,6 +302,7 @@ const MOCK_DB = {
       categoryId: 'educacion-financiera',
       badge: 'Educación Financiera',
       title: 'Ahorrar no es lo Mismo que Invertir',
+      image: 'assets/tips/ahorrar-no-es-invertir.jpg',
       excerpt: 'El ahorro te da seguridad y acceso inmediato. La inversión busca crecimiento, pero asume riesgo. Ninguno reemplaza al otro.',
       body: [
         'Ahorrar e invertir suelen mencionarse juntos, pero cumplen funciones distintas. Ahorrar es guardar plata para tenerla disponible cuando haga falta: prioriza la seguridad y el acceso rápido, aunque eso signifique renunciar a un rendimiento mayor.',
@@ -305,6 +316,7 @@ const MOCK_DB = {
       categoryId: 'educacion-financiera',
       badge: 'Educación Financiera',
       title: 'Diferenciación de Gastos Fijos y Variables',
+      image: 'assets/tips/gastos-fijos-y-variables.jpg',
       excerpt: 'Los fijos se repiten cada mes y son previsibles. Los variables cambian según tus decisiones — y ahí está tu margen para ajustar.',
       body: [
         'Los gastos fijos son los que se repiten mes a mes con un monto similar: el arriendo, el plan de celular, el internet, un seguro. Son previsibles, y por eso son más fáciles de planificar dentro de un presupuesto — sabés de antemano que van a estar ahí.',
@@ -318,6 +330,7 @@ const MOCK_DB = {
       categoryId: 'educacion-financiera',
       badge: 'Educación Financiera',
       title: 'El Propósito de un Presupuesto',
+      image: 'assets/tips/proposito-de-un-presupuesto.jpg',
       excerpt: 'Un presupuesto no es una cárcel para tu plata — es el mapa que te muestra cuánto entra, cuánto sale y a dónde podés llevarla.',
       body: [
         'Lejos de ser una restricción, un presupuesto es simplemente un plan que detalla tus ingresos y gastos durante un período — generalmente un mes. Su función es mostrarte con claridad cuánto entra, cuánto sale, y en qué se va, para que puedas decidir con esa información y no a ciegas.',
@@ -331,6 +344,7 @@ const MOCK_DB = {
       categoryId: 'educacion-financiera',
       badge: 'Educación Financiera',
       title: 'Entendiendo el Interés Compuesto',
+      image: 'assets/tips/interes-compuesto.jpg',
       excerpt: 'Los intereses generan sus propios intereses. A tu favor en el ahorro, en contra tuya en una deuda que no pagás a tiempo.',
       body: [
         'El interés compuesto ocurre cuando los intereses que generás sobre un ahorro o una inversión empiezan, a su vez, a generar sus propios intereses. No solo ganás sobre tu capital inicial, sino también sobre lo que ya habías ganado en períodos anteriores — por eso el crecimiento se acelera con el tiempo.',
@@ -344,6 +358,7 @@ const MOCK_DB = {
       categoryId: 'educacion-financiera',
       badge: 'Educación Financiera',
       title: 'Sueldo Bruto vs. Sueldo Líquido',
+      image: 'assets/tips/sueldo-bruto-vs-liquido.jpg',
       excerpt: 'El sueldo bruto es el número del contrato. El líquido es lo que realmente entra a tu cuenta — y es con ese que hay que presupuestar.',
       body: [
         'El sueldo bruto es el monto total que figura en tu contrato: incluye tu salario base, más bonificaciones, horas extras y otros beneficios, antes de cualquier descuento. Es un número real, pero no es el que vas a poder gastar.',
@@ -357,6 +372,7 @@ const MOCK_DB = {
       categoryId: 'tips-financieros',
       badge: 'Tips Financieros',
       title: 'Antes de Comprar, Preguntate Esto',
+      image: 'assets/tips/antes-de-comprar-preguntate-esto.jpg',
       excerpt: '¿Lo necesito, lo quiero, o solo lo vi y me dieron ganas? Tres preguntas simples antes de sacar la billetera.',
       body: [
         'Frenar un segundo antes de pagar puede ser una de las herramientas más simples para mantener tus finanzas bajo control. La primera pregunta es la más básica: ¿lo necesito de verdad? Si no cae dentro de lo esencial —comida, vivienda, ropa básica— probablemente no sea una necesidad.',
@@ -370,6 +386,7 @@ const MOCK_DB = {
       categoryId: 'tips-financieros',
       badge: 'Tips Financieros',
       title: 'Separá tu Plata en Cuentas Distintas',
+      image: 'assets/tips/separa-tu-plata-en-cuentas.jpg',
       excerpt: 'Una cuenta para lo fijo, otra para el día a día, otra para ahorro. Verlo separado hace mucho más difícil gastar de más.',
       body: [
         'Cuando toda tu plata vive en una sola cuenta, es fácil perder la noción de cuánto es realmente disponible para gastar y cuánto ya tiene un destino. Separar el dinero según su propósito es una forma simple de recuperar ese control.',
@@ -383,6 +400,7 @@ const MOCK_DB = {
       categoryId: 'tips-financieros',
       badge: 'Tips Financieros',
       title: 'El Hábito de Pagarte a Vos Primero',
+      image: 'assets/tips/el-habito-de-pagarte-primero.jpg',
       excerpt: 'Separá tu ahorro apenas te pagan, antes de cualquier otro gasto. Lo que sobra a fin de mes casi nunca sobra.',
       body: [
         'La estrategia de "pagarte a vos primero" invierte el orden habitual: en lugar de ahorrar lo que queda después de pagar todo, separás el ahorro apenas te llega el ingreso, antes de destinarlo a cualquier otra cosa. La cantidad puede ser chica — lo que importa es que sea constante.',
@@ -396,6 +414,7 @@ const MOCK_DB = {
       categoryId: 'tips-financieros',
       badge: 'Tips Financieros',
       title: 'Revisión Semanal de Gastos',
+      image: 'assets/tips/revision-semanal-de-gastos.jpg',
       excerpt: 'Diez minutos cada domingo alcanzan para notar un desvío antes de que se convierta en un problema a fin de mes.',
       body: [
         'Dedicar diez minutos cada domingo a repasar en qué gastaste durante la semana puede ser una de las herramientas más simples para mantener tus finanzas bajo control. No hace falta más que eso para notar patrones y corregir el rumbo antes de que un pequeño desvío se convierta en un problema grande a fin de mes.',
@@ -409,6 +428,7 @@ const MOCK_DB = {
       categoryId: 'tips-financieros',
       badge: 'Tips Financieros',
       title: 'Usá el Vuelto a tu Favor',
+      image: 'assets/tips/usa-el-vuelto-a-tu-favor.jpg',
       excerpt: 'Las monedas sueltas del vuelto parecen no valer nada — hasta que juntás varias semanas seguidas y ves cuánto sumaron.',
       body: [
         'Cuando pagás en efectivo, es fácil no darle importancia al vuelto que te dan — son monedas o billetes chicos que, sueltos, no parecen valer gran cosa. Pero juntados con constancia, suman mucho más de lo que uno se imagina.',
