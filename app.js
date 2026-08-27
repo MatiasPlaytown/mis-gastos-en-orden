@@ -632,7 +632,11 @@ function renderSummaryList(avisos) {
 function renderCalmCard() {
   const el = document.getElementById('home-calm-quote');
   if (!el) return;
-  const dayIndex = Math.floor(Date.now() / 86400000) % MOCK_DB.calmQuotes.length;
+  // Días transcurridos en hora *local*: Date.now()/86400000 cuenta días UTC, así
+  // que la frase cambiaba a las 21hs de Chile en vez de a la medianoche.
+  const now = new Date();
+  const dayNumber = Math.floor(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 86400000);
+  const dayIndex = ((dayNumber % MOCK_DB.calmQuotes.length) + MOCK_DB.calmQuotes.length) % MOCK_DB.calmQuotes.length;
   el.textContent = `"${MOCK_DB.calmQuotes[dayIndex]}"`;
 }
 
@@ -742,7 +746,10 @@ function initRegistros() {
 function populateSubscriptionCategorySelect() {
   const sel = document.getElementById('subscription-category');
   if (!sel) return;
-  sel.innerHTML = MOCK_DB.fixedExpenseCategories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  // Placeholder deshabilitado al frente: elegir categoría es obligatorio, no
+  // queremos que se guarde "Streaming" sólo por ser la primera de la lista.
+  const placeholder = '<option value="" disabled selected>Elegir categoría</option>';
+  sel.innerHTML = placeholder + MOCK_DB.fixedExpenseCategories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 }
 
 function openSubscriptionModal(sub) {
@@ -750,7 +757,7 @@ function openSubscriptionModal(sub) {
   document.getElementById('subscription-modal-title').textContent = sub ? 'Editar Gasto Fijo' : 'Nuevo Gasto Fijo';
   document.getElementById('subscription-name').value = sub ? sub.name : '';
   document.getElementById('subscription-amount').value = sub ? sub.amount : '';
-  document.getElementById('subscription-category').value = sub ? sub.categoryId : MOCK_DB.fixedExpenseCategories[0].id;
+  document.getElementById('subscription-category').value = sub ? sub.categoryId : '';
   document.getElementById('subscription-day').value = sub ? sub.dueDay : '';
   document.getElementById('subscription-reminder').value = sub ? String(sub.reminderDays) : '5';
   document.getElementById('subscription-modal').classList.add('open');
@@ -768,6 +775,10 @@ function saveSubscriptionModal() {
   const reminderDays = parseInt(document.getElementById('subscription-reminder').value, 10);
   if (!name || !amount || amount <= 0 || !dueDay || dueDay < 1 || dueDay > 31) {
     showToast('Revisá los datos del vencimiento');
+    return;
+  }
+  if (!categoryId) {
+    showToast('Elegí una categoría');
     return;
   }
   const subs = getSubscriptions();
