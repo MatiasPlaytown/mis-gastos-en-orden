@@ -454,7 +454,7 @@ input, select, textarea { font-family: inherit; }
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  margin: 18px 0 0;
+  margin: 18px 0 18px;
   padding-bottom: 2px;
   scrollbar-width: none;
 }
@@ -1207,6 +1207,10 @@ input, select, textarea { font-family: inherit; }
   appearance: none;
 }
 .field input:focus, .field select:focus { border-color: var(--cyan); }
+/* Select con placeholder obligatorio (Categoría): mientras no eligieron nada se
+   ve apagado como un ::placeholder, no como un valor ya cargado. */
+.field select:has(option[value=""]:checked) { color: var(--ink-dim); }
+.field select option { color: var(--ink); }
 .field-row { display: flex; gap: 10px; }
 .field-row .field { flex: 1; }
 
