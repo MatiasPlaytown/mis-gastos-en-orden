@@ -699,6 +699,112 @@ input, select, textarea { font-family: inherit; }
   color: var(--ink-faint);
 }
 
+/* ---------- tip de la semana (destacado, fijo, fuera del grid) ---------- */
+
+.featured-tip {
+  border-radius: var(--rl);
+  padding: 22px 22px 20px;
+  margin: 18px 0 22px;
+  background: linear-gradient(135deg, #e4f6f2, #eef5ff 55%, #f4f0fb);
+  border: 1px solid rgba(105,82,179,0.22);
+}
+.featured-tip-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--violet);
+  margin: 0 0 12px;
+}
+.featured-tip h3 {
+  font-family: var(--font-display);
+  letter-spacing: var(--tracking-display);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 10px;
+  color: var(--ink);
+}
+.featured-tip-excerpt {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.5;
+  margin: 0 0 12px;
+}
+.featured-tip-p {
+  font-size: 13.5px;
+  color: var(--ink-dim);
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+.featured-tip-p:last-of-type { margin-bottom: 14px; }
+.featured-tip-actions-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 2px 0 8px;
+}
+.featured-tip-actions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: rgba(255,255,255,0.6);
+  border: 1px solid rgba(105,82,179,0.2);
+  border-radius: var(--rm);
+  overflow: hidden;
+}
+.featured-tip-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.featured-tip-action + .featured-tip-action { border-top: 1px solid rgba(105,82,179,0.16); }
+.featured-tip-action-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--violet);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.featured-tip-action-icon svg { width: 11px; height: 11px; }
+.featured-tip-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(105,82,179,0.18);
+}
+.featured-tip-source {
+  font-style: italic;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+.featured-tip-link {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--violet);
+  white-space: nowrap;
+}
+.featured-tip-link:hover { text-decoration: underline; }
+
 /* ---------- tips (Consejos Conscientes) ---------- */
 
 .tips-list {

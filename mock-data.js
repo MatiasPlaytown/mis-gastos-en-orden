@@ -439,6 +439,31 @@ const MOCK_DB = {
     },
   ],
 
+  // Pool de "Tip de la Semana" — a diferencia de `tips`, cada entrada nace de
+  // una noticia financiera real y trae el consejo para sacarle provecho. La
+  // home siempre muestra el ÚLTIMO elemento del array (el más nuevo): agregar
+  // uno al final alcanza para reemplazar el destacado; no hace falta borrar
+  // los anteriores, quedan como historial.
+  featuredTips: [
+    {
+      id: 'bencinazo-agosto-2026',
+      title: 'El "bencinazo" empuja la inflación: cómo cuidar tus ahorros mientras dura',
+      excerpt: 'El conflicto en Medio Oriente ya cumplió seis meses y encareció los combustibles: el IPC de agosto subiría 0,3% y el dólar pasó de rondar los $870 a moverse sobre los $900.',
+      body: [
+        'La inflación anual venía en 3,5% y con el alza de las bencinas de agosto se encamina a cerca de 3,8% — el Banco Central ya advirtió que este componente puede seguir pesando si el petróleo sigue subiendo a nivel global.',
+      ],
+      // Consejos concretos y accionables — se muestran como checklist, no como
+      // párrafo, para que quede claro qué hacer (no sólo el contexto de la noticia).
+      actions: [
+        'Mové tus ahorros de corto plazo a un depósito o instrumento indexado a la UF: así siguen el ritmo de la inflación y no pierden poder de compra mes a mes.',
+        'Si tenés auto, repasá tu Gasto Fijo de Transporte en Vencimientos — es de los primeros ítems del presupuesto en sentir un alza sostenida de la bencina.',
+      ],
+      source: 'Emol',
+      sourceUrl: 'https://www.emol.com/noticias/Economia/2026/08/23/1209224/bencinazo-inflacion-chile.html',
+      publishedAt: '2026-08-25',
+    },
+  ],
+
   // Categorías de Gasto Fijo / vencimiento — definen ícono y color en la UI.
   fixedExpenseCategories: [
     { id: 'streaming',  name: 'Streaming',           icon: 'play',    color: 'violet' },

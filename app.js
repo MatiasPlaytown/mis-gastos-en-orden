@@ -225,6 +225,12 @@ async function fetchRelatedTips(categoryId, excludeId, limit = 3) {
     .filter((t) => t.categoryId === categoryId && t.id !== excludeId)
     .slice(0, limit);
 }
+// Siempre el último del pool — ver comentario de `featuredTips` en mock-data.js.
+async function fetchFeaturedTip() {
+  await apiDelay();
+  const pool = MOCK_DB.featuredTips;
+  return pool && pool.length ? pool[pool.length - 1] : null;
+}
 function contentCategoryById(id) {
   return MOCK_DB.contentCategories.find((c) => c.id === id);
 }
@@ -508,8 +514,38 @@ async function initHome() {
 
   refreshHomeSummary();
 
+  renderFeaturedTip(await fetchFeaturedTip());
+
   const tips = await fetchTips();
   renderCategoryFilter(MOCK_DB.contentCategories, tips);
+}
+
+function renderFeaturedTip(tip) {
+  const el = document.getElementById('home-featured-tip');
+  if (!el) return;
+  if (!tip) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `
+    <p class="featured-tip-eyebrow">📰 Tip de la Semana</p>
+    <h3>${escapeHtml(tip.title)}</h3>
+    <p class="featured-tip-excerpt">${escapeHtml(tip.excerpt)}</p>
+    ${tip.body.map((p) => `<p class="featured-tip-p">${escapeHtml(p)}</p>`).join('')}
+    ${tip.actions && tip.actions.length ? `
+      <p class="featured-tip-actions-label">Qué podés hacer</p>
+      <ul class="featured-tip-actions">
+        ${tip.actions.map((a) => `
+          <li class="featured-tip-action">
+            <span class="featured-tip-action-icon">${UI_ICONS.check}</span>
+            <span>${escapeHtml(a)}</span>
+          </li>
+        `).join('')}
+      </ul>
+    ` : ''}
+    <div class="featured-tip-footer">
+      <span class="featured-tip-source">Fuente: ${escapeHtml(tip.source)} · ${fmtDatePretty(tip.publishedAt)}</span>
+      ${tip.sourceUrl ? `<a class="featured-tip-link" href="${escapeHtml(tip.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ver noticia ↗</a>` : ''}
+    </div>
+  `;
 }
 
 let homeTipsCategory = 'all';
