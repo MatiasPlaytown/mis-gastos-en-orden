@@ -19,17 +19,26 @@
 </header>
 
 <div id="home-container" class="page">
-  <div class="section-head" style="margin-top:6px"><h2>📊 Resumen del día</h2></div>
+  <div class="section-head" style="margin-top:6px">
+    <h2 class="section-head-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/><path d="M8.5 15l2 2 4-4"/></svg>
+      <span>Resumen del día</span>
+    </h2>
+  </div>
   <div class="summary-list" id="home-summary"></div>
 
   <div id="home-challenge" hidden></div>
 
   <div class="calm-card">
-    <p class="calm-eyebrow">✨ Dosis de Calma</p>
+    <svg class="calm-card-deco" viewBox="0 0 160 160" fill="none" aria-hidden="true">
+      <path d="M118 26a58 58 0 1 0 0 108 46 46 0 0 1 0-108Z" stroke="var(--cyan)" stroke-width="5" opacity="0.22"/>
+      <circle cx="132" cy="30" r="2.4" fill="var(--cyan)" opacity="0.3"/>
+      <circle cx="146" cy="52" r="1.8" fill="var(--cyan)" opacity="0.24"/>
+    </svg>
+    <p class="calm-eyebrow">Dosis de Calma</p>
     <p class="calm-quote" id="home-calm-quote">""</p>
   </div>
 
-  <p class="section-sub" style="margin-top:28px">Hacerlo bien hoy para estar tranquilo mañana.</p>
   <div class="featured-tip" id="home-featured-tip" hidden></div>
 
   <div class="cat-filter" id="home-cat-filter"></div>

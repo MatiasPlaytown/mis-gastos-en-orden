@@ -261,6 +261,17 @@ input, select, textarea { font-family: inherit; }
   font-weight: 700;
   margin: 0;
 }
+.section-head h2.section-head-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-head-icon svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--cyan-ink);
+}
 .section-sub {
   color: var(--ink-dim);
   font-size: 13.5px;
@@ -284,19 +295,20 @@ input, select, textarea { font-family: inherit; }
 
 .summary-card {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
   background: none;
   border: none;
-  padding: 18px 22px;
+  padding: 14px 22px;
   transition: background 0.15s ease;
 }
 .summary-card:active { background: var(--border-soft); }
 .summary-card + .summary-card { border-top: 1px solid var(--border-soft); }
 .summary-card.is-overdue { background: linear-gradient(90deg, var(--red-pastel), var(--card) 70%); }
 
-.summary-card-top { display: flex; align-items: center; gap: 16px; }
-.summary-card-bottom { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.summary-card-top { display: flex; align-items: center; gap: 16px; flex: 1 1 220px; min-width: 0; }
+.summary-card-bottom { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; flex-shrink: 0; }
 
 /* ---------- anillo de ciclo (vencimientos) ---------- */
 /* Barrido real: día 1 del mes = casi vacío, día de vencimiento = anillo
@@ -481,13 +493,26 @@ input, select, textarea { font-family: inherit; }
 /* ---------- dosis de calma ---------- */
 
 .calm-card {
+  position: relative;
+  overflow: hidden;
   border-radius: var(--rl);
   padding: 24px 22px;
   margin: 26px 0 4px;
   background: linear-gradient(135deg, #dff6f1, #eef7f2 55%, #f2f0fb);
   border: 1px solid rgba(15,155,143,0.18);
 }
+.calm-card-deco {
+  position: absolute;
+  z-index: 0;
+  top: -18px;
+  right: -22px;
+  width: 150px;
+  height: 150px;
+  pointer-events: none;
+}
 .calm-eyebrow {
+  position: relative;
+  z-index: 1;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 600;
@@ -497,6 +522,8 @@ input, select, textarea { font-family: inherit; }
   margin: 0 0 12px;
 }
 .calm-quote {
+  position: relative;
+  z-index: 1;
   font-family: var(--font-display);
   letter-spacing: var(--tracking-display);
   font-style: normal;
@@ -702,11 +729,26 @@ input, select, textarea { font-family: inherit; }
 /* ---------- tip de la semana (destacado, fijo, fuera del grid) ---------- */
 
 .featured-tip {
+  position: relative;
+  overflow: hidden;
   border-radius: var(--rl);
   padding: 22px 22px 20px;
   margin: 18px 0 22px;
   background: linear-gradient(135deg, #e4f6f2, #eef5ff 55%, #f4f0fb);
   border: 1px solid rgba(105,82,179,0.22);
+}
+.featured-tip-deco {
+  position: absolute;
+  z-index: 0;
+  top: -14px;
+  right: -20px;
+  width: 130px;
+  height: 130px;
+  pointer-events: none;
+}
+.featured-tip-body {
+  position: relative;
+  z-index: 1;
 }
 .featured-tip-eyebrow {
   font-family: var(--font-mono);

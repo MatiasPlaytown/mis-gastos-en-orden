@@ -526,24 +526,30 @@ function renderFeaturedTip(tip) {
   if (!tip) { el.hidden = true; return; }
   el.hidden = false;
   el.innerHTML = `
-    <p class="featured-tip-eyebrow">📰 Tip de la Semana</p>
-    <h3>${escapeHtml(tip.title)}</h3>
-    <p class="featured-tip-excerpt">${escapeHtml(tip.excerpt)}</p>
-    ${tip.body.map((p) => `<p class="featured-tip-p">${escapeHtml(p)}</p>`).join('')}
-    ${tip.actions && tip.actions.length ? `
-      <p class="featured-tip-actions-label">Qué podés hacer</p>
-      <ul class="featured-tip-actions">
-        ${tip.actions.map((a) => `
-          <li class="featured-tip-action">
-            <span class="featured-tip-action-icon">${UI_ICONS.check}</span>
-            <span>${escapeHtml(a)}</span>
-          </li>
-        `).join('')}
-      </ul>
-    ` : ''}
-    <div class="featured-tip-footer">
-      <span class="featured-tip-source">Fuente: ${escapeHtml(tip.source)} · ${fmtDatePretty(tip.publishedAt)}</span>
-      ${tip.sourceUrl ? `<a class="featured-tip-link" href="${escapeHtml(tip.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ver noticia ↗</a>` : ''}
+    <svg class="featured-tip-deco" viewBox="0 0 160 160" fill="none" aria-hidden="true">
+      <rect x="52" y="14" width="92" height="118" rx="12" stroke="var(--violet)" stroke-width="5" opacity="0.2"/>
+      <path d="M70 42h56M70 60h56M70 78h34" stroke="var(--violet)" stroke-width="5" stroke-linecap="round" opacity="0.2"/>
+    </svg>
+    <div class="featured-tip-body">
+      <p class="featured-tip-eyebrow">Tip de la Semana</p>
+      <h3>${escapeHtml(tip.title)}</h3>
+      <p class="featured-tip-excerpt">${escapeHtml(tip.excerpt)}</p>
+      ${tip.body.map((p) => `<p class="featured-tip-p">${escapeHtml(p)}</p>`).join('')}
+      ${tip.actions && tip.actions.length ? `
+        <p class="featured-tip-actions-label">Qué podés hacer</p>
+        <ul class="featured-tip-actions">
+          ${tip.actions.map((a) => `
+            <li class="featured-tip-action">
+              <span class="featured-tip-action-icon">${UI_ICONS.check}</span>
+              <span>${escapeHtml(a)}</span>
+            </li>
+          `).join('')}
+        </ul>
+      ` : ''}
+      <div class="featured-tip-footer">
+        <span class="featured-tip-source">Fuente: ${escapeHtml(tip.source)} · ${fmtDatePretty(tip.publishedAt)}</span>
+        ${tip.sourceUrl ? `<a class="featured-tip-link" href="${escapeHtml(tip.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ver noticia ↗</a>` : ''}
+      </div>
     </div>
   `;
 }
