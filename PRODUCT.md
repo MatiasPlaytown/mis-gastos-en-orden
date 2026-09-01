@@ -33,7 +33,7 @@ El diferencial no es sólo el contenido educativo (eso lo tienen otras apps de f
 ## Capabilities and Constraints
 
 - Datos del usuario (movimientos, vencimientos, perfil) 100% en `localStorage`, sin backend — se pierden si el usuario borra caché o cambia de dispositivo (aceptado por ahora, no hay plan de backend todavía).
-- Contenido educativo es mock local (`mock-data.js`) con el mismo patrón `fetch*` async que tendrá el futuro endpoint de WordPress — cuando exista, sólo cambia el cuerpo de esas funciones.
+- Contenido educativo (notas, retos semanales, tip de la semana, dosis de calma) vive en WordPress (`contenidos.vip/misgastoseo`) y se trae por REST — ver "API de contenido" en CLAUDE.md.
 - El motor de vencimientos clampea el día de vencimiento al último día del mes cuando corresponde, y sólo escribe `lastPaidPeriod` al marcar como pagado (sin lógica de reset explícita).
 - Sin buscadores en esta app (a diferencia de MindMusic) — no hay campo de búsqueda en ninguna pantalla.
 
@@ -45,7 +45,7 @@ Libertad de diseño total confirmada por el usuario (2026-08-22): el sistema vis
 
 ## Evidence on Hand
 
-Ningún asset gráfico (logo, imágenes, ilustraciones) vive en el repo hoy — todo el contenido educativo es texto mock en `mock-data.js`, sin testimonios, casos ni prensa reales. No fabricar evidencia (testimonios, benchmarks, logos) en trabajo futuro; si se necesita un logo gráfico de "Mis Gastos en Orden", pedirlo al usuario en vez de inventarlo.
+Fuera del isotipo (`assets/brand/`) y las fotos de las notas (`assets/tips/`), no hay assets gráficos propios; el contenido educativo es texto editorial cargado en WordPress, sin testimonios, casos ni prensa reales. No fabricar evidencia (testimonios, benchmarks, logos) en trabajo futuro; si se necesita un logo gráfico de "Mis Gastos en Orden", pedirlo al usuario en vez de inventarlo.
 
 ## Product Principles
 

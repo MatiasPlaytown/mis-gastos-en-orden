@@ -19,8 +19,8 @@ El diseño ya **no** calca `gastos-en-orden.vercel.app` ni la paleta lavanda-noc
 - **Multi-página estática**: sin build tools, sin framework — mismo patrón que MindMusic.
 - **CSS compartido**: `styles.css`.
 - **JS compartido**: `app.js` (íconos, utils, estado, motor de vencimientos, capa de datos de contenido, init de páginas).
-- **Contenido educativo**: mock local (`mock-data.js`), mismo criterio que MindMusic — cuando exista WordPress, sólo cambia el cuerpo de las funciones `fetch*` en `app.js`.
-- **Datos del usuario (movimientos, vencimientos, perfil)**: **100% `localStorage`**, sin backend, sin mock. No pasan por `mock-data.js` ni por ninguna función `fetch*` — son el estado real de la app. Se pierden si el usuario borra caché o cambia de dispositivo (aceptado por ahora; no hay plan de backend todavía).
+- **Contenido educativo**: **REST de WordPress** (`contenidos.vip/misgastoseo`), mismo patrón que Retofit. Sin mock ni fallback estático: si la API no responde, la sección muestra un empty-state. Ver "API de contenido" abajo.
+- **Datos del usuario (movimientos, vencimientos, perfil)**: **100% `localStorage`**, sin backend, sin mock. No pasan por WordPress ni por ninguna función `fetch*` — son el estado real de la app. Se pierden si el usuario borra caché o cambia de dispositivo (aceptado por ahora; no hay plan de backend todavía).
 - **Carga de registros**: formulario estructurado (nombre, monto, fecha/categoría según el tipo). No hay parsing de lenguaje natural ni IA, ni siquiera como mock.
 - **Moneda**: pesos chilenos, formato simple `$12.500` (sin selector de moneda).
 
@@ -33,20 +33,57 @@ El diseño ya **no** calca `gastos-en-orden.vercel.app` ni la paleta lavanda-noc
 | `contenido.html` | Detalle de un tip educativo (`?id=XXX`) — con "← Volver" **y** el nav/sidebar de siempre (marca "Inicio" como activo). Al pie, sección "Tips relacionados" con hasta 3 tips de la misma categoría |
 | `retos.html` | Retos semanales: card del reto vigente + "Finalizados" + "No finalizados" |
 | `perfil.html` | Nombre editable + "Borrar datos locales" |
-| `app.js` | Íconos, utils, estado en localStorage, motor de vencimientos, mock-API de contenido, nav, init de cada página |
-| `mock-data.js` | Contenido educativo estático (tips, categorías de contenido) + catálogo de categorías de Gasto Fijo (íconos/colores) — **no** contiene datos transaccionales del usuario |
+| `app.js` | Íconos, utils, estado en localStorage, motor de vencimientos, API de contenido (WordPress), nav, init de cada página |
+| `app-data.js` | Catálogo de categorías de Gasto Fijo (íconos/colores). **Nada de contenido editorial** — eso vive en WordPress. Antes era `mock-data.js` |
+| `wp-import/misgastoseo-content.xml` | Archivo WXR con TODO el contenido editorial, para cargar en WP Admin → Herramientas → Importar |
+| `wp-import/LEEME.md` | Cómo importarlo y el formato JSON de cada tipo de contenido |
+| `tools/generate-wp-import.js` | Generador de ese XML (migración one-shot, ver su cabecera) |
+| `tools/subir-imagenes-wp.py` | Sube a WordPress las fotos de notas que quedaron sin imagen destacada (el import de adjuntos se corta por timeout) |
 | `styles.css` | Design system light/fintech (tokens, nav, cards, modal, badges de estado) |
 | `assets/brand/` | Isotipo (`logo-mark.svg`, también favicon), icono de app (`app-icon.svg`, `app-icon-512.png`, `apple-touch-icon.png`) |
 | `.claude/launch.json` | Server estático local (`python3 -m http.server 4321`) para previsualizar la app sin build |
 
+## API de contenido (WordPress)
+
+Base: `https://contenidos.vip/misgastoseo/wp-json/api/v3/articles`
+
+Cada nota guarda su JSON **en el cuerpo del post, en texto plano**; la API lo
+devuelve en `mobile_content`. Se usa siempre `fulldata/category/{slug}?limit=100`,
+que ya trae `mobile_content` en el listado — así alcanza **una llamada por
+categoría** y no hay que pedir el detalle de cada nota.
+
+| Categoría en WP | Qué alimenta | Forma del JSON |
+|---|---|---|
+| `tips-educativos` | Cards de Home y detalle en `contenido.html` | `{ id, category, badge, title, excerpt, image, publishedAt, body[] }` |
+| `retos-semanales` | Pool del reto de la semana | `{ id, title, description, order }` |
+| `tips-de-la-semana` | Card "Tip de la Semana" (siempre la más nueva) | `{ id, title, excerpt, publishedAt, body[], actions[], source, sourceUrl }` |
+| `dosis-de-calma` | Frase del día | `{ id, quote, order }` |
+
+- Las notas van en `tips-educativos` **y** en su categoría temática
+  (`tips-financieros` / `alertas` / `ahorro` / `educacion-financiera`): la
+  primera es la que la app pide para traerlas todas de una.
+- Los chips del filtro de Home **se derivan de las notas cargadas**
+  (`contentCategoriesFromTips()`): el nombre sale del `badge` y el orden de
+  `CONTENT_CATEGORY_ORDER`. No hay endpoint de categorías.
+- La imagen de una nota sale de la **imagen destacada** del post; el `image` del
+  JSON queda de respaldo (ruta relativa al repo). Ojo: el plugin **nunca manda
+  `thumbnail` vacío** — si el post no tiene destacada (o apunta a un adjunto que
+  no existe) devuelve su placeholder `…/appapi/public/images/default_image.png`.
+  `wpThumbnail()` lo descarta; sin eso el respaldo no se usaría nunca.
+- `parseMobileContent()` tolera JSON con una coma colgando o con comillas
+  tipográficas (pasa al pegar desde un procesador de texto);
+  `mapContentItems()` descarta los `id` repetidos — un import corrido dos veces
+  deja duplicados y en Retos un duplicado correría toda la rotación.
+- `CONTENT_CACHE` guarda una copia por categoría por carga de página.
+- `fetchRelatedTips(categoryId, excludeId, limit=3)` alimenta "Tips
+  relacionados" al pie del detalle, resolviéndose sobre las notas ya cacheadas
+  (sin ir de nuevo a la red).
+- El formato de cada tipo de contenido y cómo importarlo: `wp-import/LEEME.md`.
+
 ## Modelo de datos
 
-### Contenido estático (`mock-data.js` → `MOCK_DB`, patrón `fetch*` async igual a MindMusic)
-- `contentCategories`: 4 categorías — Tips Financieros, Alertas, Ahorro, Educación Financiera.
-- `tips`: `{ id, categoryId, badge, title, excerpt, body[], publishedAt }` — cards en Home y detalle en `contenido.html`. `fetchRelatedTips(categoryId, excludeId, limit=3)` alimenta "Tips relacionados" al pie del detalle: filtra por misma categoría y descarta el tip abierto; si no queda ninguno la sección no se muestra.
-- `fixedExpenseCategories`: `{ id, name, icon, color }` — streaming, servicios, tarjeta, alquiler, otros.
-- `calmQuotes`: pool de frases para la card "Dosis de Calma" (rotan por día, no al azar).
-- `weeklyChallenges`: `{ id, title, description }[]` — pool de 30 retos semanales (fuente: PDF "Retos de Mis Gastos En Orden"). El orden **es** la rotación (ver motor de retos abajo): agregar al final es seguro, reordenar cambia qué reto toca cada semana.
+### Catálogo local (`app-data.js` → `APP_DATA`)
+- `fixedExpenseCategories`: `{ id, name, icon, color }` — streaming, servicios, tarjeta, alquiler, etc. Va atado al código de la UI (íconos/colores), no es contenido editable, y por eso no se migró a WordPress.
 
 ### Datos del usuario (`localStorage`, ver `STORAGE_KEYS` en `app.js`)
 - `mgo_profile` → `{ name }`.
@@ -71,6 +108,7 @@ El botón "Pagado" (`markSubscriptionPaid()`) sólo escribe `lastPaidPeriod` y a
 ## El motor de retos semanales
 Misma filosofía que el de vencimientos: **sin timers ni cron**. El reto vigente es función pura de `(pool, hoy)` y se recalcula en cada carga (`challengeForWeek()` en `app.js`).
 
+- El pool sale de WordPress (`loadChallenges()`), ordenado por el campo `order` del JSON — **hay que esperar esa carga antes de dibujar cualquier card de reto o el historial**.
 - La semana arranca el **lunes 00:00** (hora local del dispositivo): `weekStart()` normaliza cualquier fecha a su lunes, `weekKey()` la vuelve `'YYYY-MM-DD'` (la clave de todo el historial).
 - `weekIndex()` cuenta semanas desde `CHALLENGE_EPOCH` (1-ene-2024, lunes) y el reto sale de `pool[weekIndex % pool.length]`. Es `Math.round()` a propósito: con el cambio de horario de verano la resta no da un múltiplo exacto de 7 días.
 - Todos los usuarios ven el mismo reto la misma semana, y recargar la página nunca lo cambia.
@@ -91,5 +129,5 @@ Misma filosofía que el de vencimientos: **sin timers ni cron**. El reto vigente
 - CSS custom properties en `:root` (`--bg`, `--cyan`, `--violet`, `--card`, etc.), light UI, radios chicos en contenedores (`--rl: 14px`) y pill sólo en botones/badges.
 - Tipografía: `Sora` (display/títulos, siempre con `letter-spacing: var(--tracking-display)`), `Inter` (cuerpo), `IBM Plex Mono` (montos, fechas, datos tipo cartola).
 - El `app.js` detecta en qué página está por la presencia de IDs únicos en el DOM (`home-container`, `registros-container`, `contenido-container`, `retos-container`, `perfil-container`).
-- Skeletons/spinner mientras se "fetchea" contenido mock. Los datos del usuario (localStorage) se leen sync, sin skeleton.
+- Skeletons mientras se fetchea el contenido de WordPress; **sin fallback a datos estáticos** (igual que Retofit). Los datos del usuario (localStorage) se leen sync, sin skeleton — por eso el "Resumen del día" se dibuja antes que nada.
 - Sin buscadores en esta app (a diferencia de MindMusic) — no hay campo de búsqueda en ninguna pantalla.

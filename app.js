@@ -77,7 +77,9 @@ function formatCLP(amount) {
 }
 
 function fmtDatePretty(dateStr) {
+  if (!dateStr) return '';
   const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d.getTime())) return '';
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
@@ -199,43 +201,186 @@ function resetLocalData() {
   Object.values(STORAGE_KEYS).forEach((k) => localStorage.removeItem(k));
 }
 
-// ───────────────────────── MOCK API (contenido educativo) ─────────────────────────
-// Hoy lee de MOCK_DB (mock-data.js). El día que exista el endpoint real de
-// WordPress, sólo cambia el cuerpo de estas funciones — las páginas que las
-// llaman no cambian. Los datos del usuario (movimientos/vencimientos) NO
-// pasan por acá: son locales, ver sección de arriba.
+// ───────────────────────── API DE CONTENIDO (WordPress) ─────────────────────────
+// Todo el contenido editorial (notas, retos, tip de la semana, dosis de calma)
+// vive en WordPress y se trae por REST. Los datos del USUARIO
+// (movimientos/vencimientos/perfil) NO pasan por acá: son locales, ver arriba.
+//
+// Cada post guarda su JSON en el cuerpo y la API lo devuelve en
+// `mobile_content`. El endpoint `fulldata/category/...` ya trae ese campo en el
+// listado, así que alcanza UNA llamada por categoría — no hace falta pedir el
+// detalle de cada nota.
 
-function apiDelay(ms = 200) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+const API_BASE = 'https://contenidos.vip/misgastoseo/wp-json/api/v3/articles';
+const WP_CATEGORY = {
+  tips:       'tips-educativos',   // todas las notas, sin importar su categoría temática
+  featured:   'tips-de-la-semana',
+  challenges: 'retos-semanales',
+  calm:       'dosis-de-calma',
+};
+// Orden de los chips del filtro en Home. El nombre visible sale del `badge` de
+// cada nota: sumar una categoría nueva en WordPress no obliga a tocar el
+// código — sólo aparece al final del filtro si no está listada acá.
+const CONTENT_CATEGORY_ORDER = ['tips-financieros', 'alertas', 'ahorro', 'educacion-financiera'];
+
+const API_PAGE_SIZE = 100;
+
+async function apiFetchCategory(slug) {
+  const out = [];
+  for (let page = 1; page <= 10; page++) {
+    const res = await fetch(`${API_BASE}/fulldata/category/${encodeURIComponent(slug)}?limit=${API_PAGE_SIZE}&page=${page}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status} al pedir "${slug}"`);
+    const json = await res.json();
+    const data = Array.isArray(json.data) ? json.data : [];
+    out.push(...data);
+    if (data.length < API_PAGE_SIZE) break;
+  }
+  return out;
 }
+
+// El JSON viaja en el cuerpo del post, así que puede llegar con una coma
+// colgando o con comillas tipográficas si se pegó desde un procesador de texto.
+// Antes de descartar una nota, probamos repararlo.
+function parseMobileContent(item) {
+  let raw = (item && item.mobile_content) || '';
+  if (raw.includes('<script')) raw = raw.replace(/^[\s\S]*?<script[^>]*>/i, '').replace(/<\/script>[\s\S]*$/i, '');
+  const tries = [raw, raw.replace(/,(\s*[}\]])/g, '$1')];
+  // Sin una sola comilla recta, el texto entero pasó por el "tipografiador".
+  if (!raw.includes('"')) tries.push(raw.replace(/[“”]/g, '"').replace(/,(\s*[}\]])/g, '$1'));
+  for (const t of tries) {
+    try {
+      const parsed = JSON.parse(t);
+      if (parsed && typeof parsed === 'object') return parsed;
+    } catch (e) { /* probamos la siguiente reparación */ }
+  }
+  console.warn('[contenido] No pude leer el JSON de la nota', item && item.id, item && item.title);
+  return null;
+}
+
+// Descarta las notas sin JSON válido y los ids repetidos: un import corrido dos
+// veces deja duplicados, y en Retos un duplicado correría toda la rotación.
+function mapContentItems(items, mapFn) {
+  const seen = new Set();
+  const out = [];
+  for (const item of items) {
+    const mc = parseMobileContent(item);
+    if (!mc) continue;
+    const mapped = mapFn(mc, item);
+    if (!mapped || !mapped.id || seen.has(mapped.id)) continue;
+    seen.add(mapped.id);
+    out.push(mapped);
+  }
+  return out;
+}
+
+// El plugin de la API NUNCA devuelve `thumbnail` vacío: si el post no tiene
+// imagen destacada (o apunta a un adjunto que no existe) manda su placeholder.
+// Hay que descartarlo o el respaldo al `image` del JSON no se usaría nunca.
+function wpThumbnail(item) {
+  const url = (item && item.thumbnail) || '';
+  return /\/default_image\.(png|jpe?g)$/i.test(url) ? '' : url;
+}
+
+function toOrder(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : Number.MAX_SAFE_INTEGER;
+}
+
+// Una sola pasada por la red por categoría y por carga de página.
+const CONTENT_CACHE = { tips: null, featured: null, challenges: null, calm: null };
 
 async function fetchTips() {
-  await apiDelay();
-  return MOCK_DB.tips;
+  if (CONTENT_CACHE.tips) return CONTENT_CACHE.tips;
+  const raw = await apiFetchCategory(WP_CATEGORY.tips);
+  CONTENT_CACHE.tips = mapContentItems(raw, (mc, item) => ({
+    id: mc.id || item.slug,
+    categoryId: mc.category || '',
+    badge: mc.badge || '',
+    title: mc.title || item.title || '',
+    excerpt: mc.excerpt || '',
+    // La imagen destacada de WordPress manda; el `image` del JSON queda de
+    // respaldo (sirve mientras la foto siga viviendo en el repo).
+    image: wpThumbnail(item) || mc.image || '',
+    imageFit: mc.imageFit || '',
+    body: Array.isArray(mc.body) ? mc.body : [],
+    publishedAt: mc.publishedAt || '',
+  })).sort((a, b) => (b.publishedAt || '').localeCompare(a.publishedAt || ''));
+  return CONTENT_CACHE.tips;
 }
+
 async function fetchTipById(id) {
-  await apiDelay();
-  return MOCK_DB.tips.find((t) => t.id === id) || null;
+  const tips = await fetchTips();
+  return tips.find((t) => t.id === id) || null;
 }
-// Tips de la misma categoría, sin el que se está leyendo. Vive acá (y no en la
-// página) para que el día del endpoint real sólo cambie el cuerpo.
+
+// Notas de la misma categoría, sin la que se está leyendo. Vive acá (y no en la
+// página) para que la fuente de datos sea siempre la misma.
 async function fetchRelatedTips(categoryId, excludeId, limit = 3) {
-  await apiDelay();
-  return MOCK_DB.tips
-    .filter((t) => t.categoryId === categoryId && t.id !== excludeId)
-    .slice(0, limit);
+  const tips = await fetchTips();
+  return tips.filter((t) => t.categoryId === categoryId && t.id !== excludeId).slice(0, limit);
 }
-// Siempre el último del pool — ver comentario de `featuredTips` en mock-data.js.
+
+// Siempre la más nueva de la categoría: publicar una nota nueva en "Tips de la
+// Semana" alcanza para reemplazar la destacada, las anteriores quedan de
+// historial. `false` en el cache = ya buscamos y no hay ninguna.
 async function fetchFeaturedTip() {
-  await apiDelay();
-  const pool = MOCK_DB.featuredTips;
-  return pool && pool.length ? pool[pool.length - 1] : null;
+  if (CONTENT_CACHE.featured !== null) return CONTENT_CACHE.featured;
+  const raw = await apiFetchCategory(WP_CATEGORY.featured);
+  const list = mapContentItems(raw, (mc, item) => ({
+    id: mc.id || item.slug,
+    title: mc.title || item.title || '',
+    excerpt: mc.excerpt || '',
+    body: Array.isArray(mc.body) ? mc.body : [],
+    actions: Array.isArray(mc.actions) ? mc.actions : [],
+    source: mc.source || '',
+    sourceUrl: mc.sourceUrl || '',
+    publishedAt: mc.publishedAt || '',
+  }));
+  CONTENT_CACHE.featured = list.length ? list[0] : false;
+  return CONTENT_CACHE.featured;
 }
-function contentCategoryById(id) {
-  return MOCK_DB.contentCategories.find((c) => c.id === id);
+
+// El reto vigente sale de este pool ordenado por `order` (ver motor de retos):
+// hay que cargarlo antes de dibujar cualquier card de reto o el historial.
+async function loadChallenges() {
+  if (CONTENT_CACHE.challenges) return CONTENT_CACHE.challenges;
+  const raw = await apiFetchCategory(WP_CATEGORY.challenges);
+  CONTENT_CACHE.challenges = mapContentItems(raw, (mc, item) => ({
+    id: mc.id || item.slug,
+    title: mc.title || item.title || '',
+    description: mc.description || '',
+    order: toOrder(mc.order),
+  })).sort((a, b) => a.order - b.order);
+  return CONTENT_CACHE.challenges;
 }
+
+// Mismo criterio que los retos: `order` fija la rotación, la frase del día sale
+// de esa posición y no del azar.
+async function loadCalmQuotes() {
+  if (CONTENT_CACHE.calm) return CONTENT_CACHE.calm;
+  const raw = await apiFetchCategory(WP_CATEGORY.calm);
+  CONTENT_CACHE.calm = mapContentItems(raw, (mc, item) => ({
+    id: mc.id || item.slug,
+    quote: mc.quote || item.title || '',
+    order: toOrder(mc.order),
+  })).sort((a, b) => a.order - b.order);
+  return CONTENT_CACHE.calm;
+}
+
+// Los chips del filtro salen de las notas ya cargadas: si una categoría se
+// queda sin notas en WordPress, deja de aparecer sola.
+function contentCategoriesFromTips(tips) {
+  const found = new Map();
+  tips.forEach((t) => {
+    if (t.categoryId && !found.has(t.categoryId)) found.set(t.categoryId, t.badge || t.categoryId);
+  });
+  const ordered = CONTENT_CATEGORY_ORDER.filter((id) => found.has(id));
+  const extra = [...found.keys()].filter((id) => !CONTENT_CATEGORY_ORDER.includes(id));
+  return [...ordered, ...extra].map((id) => ({ id, name: found.get(id) }));
+}
+
 function fixedCategoryById(id) {
-  return MOCK_DB.fixedExpenseCategories.find((c) => c.id === id);
+  return APP_DATA.fixedExpenseCategories.find((c) => c.id === id);
 }
 
 // ───────────────────────── MOTOR DE VENCIMIENTOS ─────────────────────────
@@ -348,13 +493,13 @@ function weekRangeLabel(key, sep = '–') {
 }
 
 function challengeForWeek(date = new Date()) {
-  const pool = MOCK_DB.weeklyChallenges || [];
+  const pool = CONTENT_CACHE.challenges || [];
   if (!pool.length) return null;
   const i = ((weekIndex(date) % pool.length) + pool.length) % pool.length;
   return pool[i];
 }
 function challengeById(id) {
-  return (MOCK_DB.weeklyChallenges || []).find((c) => c.id === id) || null;
+  return (CONTENT_CACHE.challenges || []).find((c) => c.id === id) || null;
 }
 
 // La primera semana se sella en la primera carga: sin esto no sabríamos desde
@@ -508,16 +653,51 @@ async function initHome() {
   initNav();
   renderSummarySkeletons();
   renderTipSkeletons();
-  renderCalmCard();
+  renderChallengeSkeleton(document.getElementById('home-challenge'));
   ensureChallengeStart();
-  renderChallengeCard(document.getElementById('home-challenge'));
 
+  // Los vencimientos son locales: se dibujan sin esperar a la red.
   refreshHomeSummary();
 
-  renderFeaturedTip(await fetchFeaturedTip());
+  // Las cuatro categorías se piden en paralelo y cada bloque se dibuja apenas
+  // llega la suya, sin esperar a las otras.
+  const calm = loadCalmQuotes();
+  const challenges = loadChallenges();
+  const featured = fetchFeaturedTip();
+  const tips = fetchTips();
 
-  const tips = await fetchTips();
-  renderCategoryFilter(MOCK_DB.contentCategories, tips);
+  calm.then(renderCalmCard).catch(() => renderCalmCard([]));
+  challenges
+    .then(() => renderChallengeCard(document.getElementById('home-challenge')))
+    .catch((err) => hideOnContentError('home-challenge', err));
+
+  try {
+    renderFeaturedTip(await featured);
+  } catch (err) {
+    hideOnContentError('home-featured-tip', err);
+  }
+
+  try {
+    const list = await tips;
+    renderCategoryFilter(contentCategoriesFromTips(list), list);
+  } catch (err) {
+    console.error('[contenido] No pude traer las notas', err);
+    const el = document.getElementById('home-tips');
+    if (el) el.innerHTML = `<div class="empty-state">No pudimos cargar el contenido. Revisá tu conexión y volvé a intentar.</div>`;
+  }
+}
+
+// Si una sección del contenido no carga, se esconde en vez de quedar a medias.
+function hideOnContentError(id, err) {
+  console.error(`[contenido] No pude traer "${id}"`, err);
+  const el = document.getElementById(id);
+  if (el) { el.innerHTML = ''; el.hidden = true; }
+}
+
+function renderChallengeSkeleton(el) {
+  if (!el) return;
+  el.hidden = false;
+  el.innerHTML = `<div class="skeleton skel-card"></div>`;
 }
 
 function renderFeaturedTip(tip) {
@@ -547,7 +727,7 @@ function renderFeaturedTip(tip) {
         </ul>
       ` : ''}
       <div class="featured-tip-footer">
-        <span class="featured-tip-source">Fuente: ${escapeHtml(tip.source)} · ${fmtDatePretty(tip.publishedAt)}</span>
+        <span class="featured-tip-source">${escapeHtml([tip.source ? `Fuente: ${tip.source}` : '', tip.publishedAt ? fmtDatePretty(tip.publishedAt) : ''].filter(Boolean).join(' · '))}</span>
         ${tip.sourceUrl ? `<a class="featured-tip-link" href="${escapeHtml(tip.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ver noticia ↗</a>` : ''}
       </div>
     </div>
@@ -635,15 +815,19 @@ function renderSummaryList(avisos) {
   el.querySelectorAll('.summary-pay-btn').forEach((b) => b.addEventListener('click', () => paySubscriptionFromHome(b.dataset.id)));
 }
 
-function renderCalmCard() {
+function renderCalmCard(quotes) {
   const el = document.getElementById('home-calm-quote');
   if (!el) return;
+  const card = el.closest('.calm-card');
+  // Sin frases publicadas no hay card: mejor que quede vacía con comillas.
+  if (!quotes || !quotes.length) { if (card) card.hidden = true; return; }
+  if (card) card.hidden = false;
   // Días transcurridos en hora *local*: Date.now()/86400000 cuenta días UTC, así
   // que la frase cambiaba a las 21hs de Chile en vez de a la medianoche.
   const now = new Date();
   const dayNumber = Math.floor(new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() / 86400000);
-  const dayIndex = ((dayNumber % MOCK_DB.calmQuotes.length) + MOCK_DB.calmQuotes.length) % MOCK_DB.calmQuotes.length;
-  el.textContent = `"${MOCK_DB.calmQuotes[dayIndex]}"`;
+  const dayIndex = ((dayNumber % quotes.length) + quotes.length) % quotes.length;
+  el.textContent = `"${quotes[dayIndex].quote}"`;
 }
 
 function renderTipsList(tips) {
@@ -663,7 +847,7 @@ function renderTipsList(tips) {
         <p class="tip-excerpt">${escapeHtml(t.excerpt)}</p>
         <hr class="tip-divider">
         <div class="tip-footer">
-          <span class="tip-hint">Publicado el ${fmtDatePretty(t.publishedAt)}</span>
+          <span class="tip-hint">${t.publishedAt ? `Publicado el ${fmtDatePretty(t.publishedAt)}` : ''}</span>
           <span class="tip-status is-${st}">${TIP_STATUS_LABELS[st]}</span>
         </div>
       </div>
@@ -677,7 +861,14 @@ function renderTipsList(tips) {
 async function initContenidoPage() {
   initNav();
   const id = new URLSearchParams(location.search).get('id');
-  const tip = await fetchTipById(id);
+  let tip = null;
+  try {
+    tip = await fetchTipById(id);
+  } catch (err) {
+    console.error('[contenido] No pude traer la nota', err);
+    document.getElementById('contenido-loading').innerHTML = `<div class="empty-state">No pudimos cargar el contenido. Revisá tu conexión y volvé a intentar.</div>`;
+    return;
+  }
 
   if (!tip) {
     document.getElementById('contenido-loading').innerHTML = `<div class="empty-state">No encontramos ese contenido.</div>`;
@@ -690,8 +881,8 @@ async function initContenidoPage() {
   const hero = document.getElementById('contenido-hero');
   hero.style.setProperty('--tip-grad', TIP_GRADIENTS[tip.categoryId] || '');
   hero.innerHTML = tip.image ? `<img class="content-hero-photo" src="${escapeHtml(tip.image)}" alt="" style="object-fit:${tip.imageFit || 'cover'}">` : '';
-  const cat = contentCategoryById(tip.categoryId);
-  document.getElementById('contenido-meta').textContent = `${cat ? cat.name.toUpperCase() : ''} · Publicado el ${fmtDatePretty(tip.publishedAt)}`;
+  const meta = [tip.badge ? tip.badge.toUpperCase() : '', tip.publishedAt ? `Publicado el ${fmtDatePretty(tip.publishedAt)}` : ''].filter(Boolean);
+  document.getElementById('contenido-meta').textContent = meta.join(' · ');
   document.getElementById('contenido-title').textContent = tip.title;
   document.getElementById('contenido-body').innerHTML = tip.body.map((p) => `<p>${escapeHtml(p)}</p>`).join('');
 
@@ -755,7 +946,7 @@ function populateSubscriptionCategorySelect() {
   // Placeholder deshabilitado al frente: elegir categoría es obligatorio, no
   // queremos que se guarde "Streaming" sólo por ser la primera de la lista.
   const placeholder = '<option value="" disabled selected>Elegir categoría</option>';
-  sel.innerHTML = placeholder + MOCK_DB.fixedExpenseCategories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  sel.innerHTML = placeholder + APP_DATA.fixedExpenseCategories.map((c) => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
 }
 
 function openSubscriptionModal(sub) {
@@ -864,9 +1055,20 @@ function renderSubscriptions() {
 
 // ───────────────────────── RETOS ─────────────────────────
 
-function initRetos() {
+async function initRetos() {
   initNav();
   ensureChallengeStart();
+  renderChallengeSkeleton(document.getElementById('retos-current'));
+  try {
+    await loadChallenges();
+  } catch (err) {
+    hideOnContentError('retos-current', err);
+    ['retos-done', 'retos-missed'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = `<div class="empty-state">No pudimos cargar los retos. Revisá tu conexión y volvé a intentar.</div>`;
+    });
+    return;
+  }
   renderChallengeCard(document.getElementById('retos-current'), { showLink: true });
   renderChallengeHistory();
 }
